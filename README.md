@@ -1,78 +1,94 @@
-# Corebit Agent (Tauri v2 + Rust + React)
+# Corebit Agent
 
-Aplicativo de bandeja do Windows para abrir chamados e conversar com o suporte
-sem sair da máquina. Consome a API pública do portal
-(`https://cliente.corebit.com.br/api/public/agent`) — contrato em `docs/AGENT_API.md` do portal.
+Aplicação desktop para Windows que integra as estações de trabalho dos clientes
+Corebit à Central do Cliente. Permite abrir e acompanhar chamados de suporte
+diretamente da máquina, sem necessidade de acesso ao navegador.
 
-## Como funciona
+Desenvolvido e mantido pela **Corebit Consultoria em TI**.
 
-1. Primeira execução: tela de ativação → o usuário cola a **chave de licença** → `POST /pair`.
-2. O `token` retornado é gravado no **Windows Credential Manager** (crate `keyring`).
-   O token **nunca** chega ao WebView: todas as chamadas HTTP saem do Rust.
-3. Heartbeat a cada 5 min em background; polling do chat a cada 10 s **somente** com a janela visível.
-4. Fechar a janela apenas esconde o app na bandeja. Sair só pelo menu da bandeja.
+---
 
-## Estrutura
+## Visão geral
 
-```
-src/                    React (telas: ativação, lista, novo chamado, chat)
-  api.ts                única ponte com o Rust (invoke)
-src-tauri/src/
-  lib.rs                comandos, bandeja, janela, heartbeat, tratamento de erro
-  api.rs                cliente HTTP + tradução dos erros da API
-  store.rs              Credential Manager (salvar/ler/apagar token)
-  sysinfo.rs            hostname, usuário do Windows, ID do AnyDesk
-```
+O Corebit Agent é distribuído às empresas atendidas pela Corebit e ativado por
+meio de uma chave de licença corporativa. Após a ativação, o agente permanece
+residente na bandeja do sistema, disponível a qualquer momento para registro de
+solicitações e comunicação com a equipe de suporte.
 
-## Rodar em desenvolvimento
+**Principais recursos**
 
-Pré-requisitos **apenas na máquina do desenvolvedor**: Node 20, Rust stable,
-Visual Studio Build Tools (Desktop C++) e WebView2 (já vem no Windows 10/11).
+- Abertura de chamados sem sair da estação de trabalho
+- Acompanhamento e resposta às interações do suporte em tempo real
+- Coleta automática de informações do equipamento para agilizar o atendimento
+- Ativação por licença corporativa, com controle centralizado pelo portal
+- Atualização automática de versão, sem intervenção do usuário
 
-```bash
-npm install
-npm run tauri dev
-```
+## Requisitos
 
-> O cliente final **não** precisa de Rust nem de Node — recebe só o `.msi`/`.exe`.
+|
+ Item             
+|
+ Requisito                                  
+|
+|
+----------------
+|
+------------------------------------------
+|
+|
+ Sistema          
+|
+ Windows 10 ou superior (64 bits)           
+|
+|
+ Runtime          
+|
+ Microsoft Edge WebView2 (nativo do Windows)
+|
+|
+ Conectividade    
+|
+ Acesso HTTPS a 
+`cliente.corebit.com.br`
+|
+|
+ Ativação         
+|
+ Chave de licença fornecida pela Corebit    
+|
 
-## Gerar instalador
+Não é necessário instalar dependências adicionais nas estações dos clientes.
 
-```bash
-npm run tauri build
-```
+## Instalação
 
-Saída: `src-tauri/target/release/bundle/msi/*.msi` e `.../nsis/*-setup.exe`.
+1. Execute o instalador (`.msi` ou `.exe`) disponibilizado pela Corebit.
+2. Na primeira execução, informe a **chave de licença** da empresa.
+3. Concluída a ativação, o agente passa a operar automaticamente a cada logon.
 
-## Auto-update
+### Implantação em massa
 
-1. Gere o par de chaves: `npm run tauri signer generate -- -w ~/.tauri/corebit.key`
-2. Cole a **chave pública** em `src-tauri/tauri.conf.json` → `plugins.updater.pubkey`.
-3. Guarde a **chave privada** e a senha em *GitHub → Settings → Secrets*:
-   `TAURI_SIGNING_PRIVATE_KEY` e `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`.
-   Nunca commite a chave privada.
-4. Publique o `latest.json` gerado pelo workflow em
-   `https://cliente.corebit.com.br/downloads/agent/latest.json`.
-
-Para eliminar o alerta do SmartScreen, assine também o instalador com um
-certificado **Code Signing** (EV de preferência) — configuração em
-`bundle.windows.certificateThumbprint`.
-
-## Instalação silenciosa (massa)
+Para distribuição via GPO, SCCM/Intune ou script de provisionamento:
 
 ```bat
-msiexec /i "Corebit Agent_0.1.0_x64_pt-BR.msi" /qn
-```
+msiexec /i "Corebit Agent_x64.msi" /qn
+A ativação é realizada pelo usuário no primeiro acesso, utilizando a chave corporativa. Para cenários de pré-ativação, entre em contato com a equipe Corebit.
 
-A ativação é feita no primeiro boot pelo usuário (chave por empresa). Para
-pré-ativar, distribua a chave via GPO/argumento e leia-a no `pair` antes de exibir a tela.
+Utilização
+Ícone na bandeja: clique para abrir a janela do agente.
+Fechar a janela: o agente é minimizado para a bandeja e continua ativo.
+Encerrar o agente: utilize a opção "Sair" no menu da bandeja.
+Segurança
+A segurança das credenciais e dos dados trafegados segue as práticas adotadas pela Corebit em todos os seus produtos:
 
-## Checklist de aceite
+O token de autenticação é armazenado no Windows Credential Manager, protegido por criptografia vinculada ao usuário do sistema operacional.
+A credencial não é exposta à interface da aplicação, ao armazenamento local nem a arquivos de log.
+Toda a comunicação com o portal ocorre exclusivamente via HTTPS.
+Licenças e pareamentos podem ser revogados remotamente pela Corebit; o agente reconhece a revogação e bloqueia o acesso na verificação seguinte.
+O pareamento é vinculado à identificação do equipamento, impedindo a reutilização da credencial em outras máquinas.
+Atualizações
+O agente verifica automaticamente a disponibilidade de novas versões e realiza a atualização em segundo plano, sem exigir ação do usuário ou do administrador da rede. Os instaladores são assinados digitalmente e validados antes da aplicação.
 
-- [ ] Ícone visível na bandeja, clique esquerdo abre a janela.
-- [ ] Fechar esconde; o processo continua vivo; "Sair" encerra.
-- [ ] Reiniciar o Windows: app sobe oculto e continua pareado (sem pedir a chave de novo).
-- [ ] Token não aparece em `localStorage`, DevTools ou arquivos de log.
-- [ ] `401` apaga o token e volta à tela de ativação.
-- [ ] `machine_inactive`/`license_expired` mostram a tela de bloqueio sem loop de requisições.
-- [ ] Chamado aberto no app aparece na fila N1 do portal; resposta do portal aparece no chat em até 10 s.
+Suporte
+Portal: https://cliente.corebit.com.br
+Site: https://www.corebit.com.br
+© Corebit Consultoria em TI. Todos os direitos reservados. Av. Paulista, 1106 — Bela Vista, São Paulo/SP — 01310-914

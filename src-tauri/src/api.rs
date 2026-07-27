@@ -1,4 +1,3 @@
-//! Camada HTTP do agente. Todo acesso à API passa por aqui.
 //! Base: https://cliente.corebit.com.br/api/public/agent
 
 use serde::{Deserialize, Serialize};
@@ -29,7 +28,10 @@ impl ApiError {
 
 /// `true` quando o agente deve apagar o token e voltar ao pareamento.
 pub fn should_unpair(code: &str) -> bool {
-    matches!(code, "unauthorized" | "invalid_token" | "token_revoked")
+    matches!(
+        code,
+        "unauthorized" | "invalid_token" | "token_revoked" | "fingerprint_mismatch"
+    )
 }
 
 /// `true` quando não adianta repetir a chamada (estado precisa de ação humana).
@@ -42,6 +44,7 @@ pub fn is_terminal(code: &str) -> bool {
             | "license_without_agent_user"
             | "machine_not_registered"
             | "machine_limit_reached"
+            | "fingerprint_mismatch"
     )
 }
 
@@ -58,7 +61,10 @@ fn humanize(code: &str, status: u16) -> String {
         }
         "machine_limit_reached" => "Limite de máquinas da licença atingido.".into(),
         "machine_inactive" => "Este computador foi desativado no portal.".into(),
-        "unauthorized" => "Sessão expirada. Refaça o pareamento.".into(),
+        "fingerprint_mismatch" => {
+            "Esta ativação pertence a outro computador. Ative com uma nova licença.".into()
+        }
+        "unauthorized" => "O acesso deste computador foi revogado. Ative com uma nova licença.".into(),
         "ticket_closed" => "Este chamado foi encerrado e não aceita novas mensagens.".into(),
         "rate_limited" => "Muitas tentativas. Aguarde alguns minutos e tente novamente.".into(),
         _ => format!("Erro inesperado do servidor (HTTP {status})."),
@@ -66,8 +72,16 @@ fn humanize(code: &str, status: u16) -> String {
 }
 
 fn client() -> Result<reqwest::Client, ApiError> {
+    // A impressão digital vai em TODA requisição: o portal recusa o token
+    // se ele for copiado para outra máquina.
+    let mut headers = reqwest::header::HeaderMap::new();
+    if let Ok(value) = reqwest::header::HeaderValue::from_str(&crate::sysinfo::fingerprint()) {
+        headers.insert("x-machine-fingerprint", value);
+    }
+
     reqwest::Client::builder()
         .timeout(Duration::from_secs(20))
+        .default_headers(headers)
         .user_agent(format!("CorebitAgent/{}", env!("CARGO_PKG_VERSION")))
         .build()
         .map_err(ApiError::network)
@@ -160,6 +174,7 @@ pub async fn pair(
         "anydesk_id": anydesk_id,
         "os_user": os_user,
         "agent_version": agent_version,
+        "fingerprint": crate::sysinfo::fingerprint(),
     });
     let value = post(None, "/pair", body).await?;
     serde_json::from_value(value).map_err(|e| ApiError {

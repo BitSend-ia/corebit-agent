@@ -139,7 +139,6 @@ rede. Os instaladores são assinados digitalmente e validados antes da instalaç
 | :-- | :-- |
 | Portal do cliente | <https://cliente.corebit.com.br> |
 | Site institucional | <https://www.corebit.com.br> |
-| WhatsApp | <https://wa.me/551150269135> |
 
 ---
 

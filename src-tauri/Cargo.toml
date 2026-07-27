@@ -1,6 +1,6 @@
 [package]
 name = "corebit-agent"
-version = "1.0.1"
+version = "1.0.2"
 description = "Corebit Agent - abertura de chamados pela bandeja do Windows"
 authors = ["Corebit Consultoria"]
 edition = "2021"
@@ -32,6 +32,8 @@ whoami = "1.5"
 thiserror = "2"
 log = "0.4"
 sha2 = "0.10"
+
+[target.'cfg(windows)'.dependencies]
 winreg = "0.52"
 
 [features]

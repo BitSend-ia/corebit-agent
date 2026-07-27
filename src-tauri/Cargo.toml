@@ -31,6 +31,8 @@ hostname = "0.4"
 whoami = "1.5"
 thiserror = "2"
 log = "0.4"
+sha2 = "0.10"
+winreg = "0.52"
 
 [features]
 custom-protocol = ["tauri/custom-protocol"]

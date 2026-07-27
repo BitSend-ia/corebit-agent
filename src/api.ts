@@ -61,6 +61,8 @@ export const agent = {
   status: () => invoke<AgentStatus>("get_status"),
   pair: (licenseKey: string) => invoke<Machine>("pair", { licenseKey }),
   unpair: () => invoke<void>("unpair"),
+  /** Limpa o bloqueio e consulta o portal na hora. */
+  recheck: () => invoke<boolean>("recheck"),
   categories: async () => (await invoke<{ categories: Category[] }>("categories")).categories ?? [],
   tickets: async () => (await invoke<{ tickets: Ticket[] }>("tickets")).tickets ?? [],
   createTicket: async (ticket: NewTicket) =>

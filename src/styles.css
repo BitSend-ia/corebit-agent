@@ -128,3 +128,34 @@ button.ghost { background: transparent; border: 1px solid var(--border); color: 
 .win-buttons { display: flex; align-items: center; gap: 4px; }
 .win-buttons .icon-btn { width: 26px; height: 24px; border-radius: 6px; line-height: 1; }
 .win-buttons .icon-btn:hover { background: rgba(255,255,255,.08); }
+/* Botão secundário (usado no BlockedScreen) */
+.btn.ghost,
+button.ghost {
+  background: rgba(255, 255, 255, 0.06);
+  color: #e8f5ee;
+  border: 1px solid rgba(45, 255, 152, 0.35);
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
+}
+
+.btn.ghost:hover,
+button.ghost:hover {
+  background: rgba(45, 255, 152, 0.12);
+  border-color: rgba(45, 255, 152, 0.6);
+}
+
+.btn.ghost:active,
+button.ghost:active {
+  transform: translateY(1px);
+}
+
+.btn.ghost:disabled,
+button.ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+

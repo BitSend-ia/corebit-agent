@@ -1,0 +1,130 @@
+:root {
+  --bg: #0a1420;
+  --surface: rgba(255, 255, 255, 0.05);
+  --border: rgba(255, 255, 255, 0.12);
+  --text: #e9f1f7;
+  --muted: #91a6b8;
+  --brand: #2dff98;
+  --brand-ink: #05261a;
+  --danger: #ff6b6b;
+  --field: #10263a;
+  color-scheme: dark;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { height: 100%; margin: 0; }
+
+body {
+  background: radial-gradient(120% 80% at 15% 0%, #12324a 0%, var(--bg) 60%);
+  color: var(--text);
+  font-size: 14px;
+  user-select: none;
+}
+
+.app { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+
+.titlebar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+}
+.brand { font-weight: 600; letter-spacing: .3px; display: flex; align-items: center; gap: 8px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 10px var(--brand); }
+.brand-logo { width: 20px; height: 20px; border-radius: 6px; display: block; }
+
+.win-buttons { display: flex; align-items: center; gap: 2px; }
+.icon-btn {
+  background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px;
+  width: 30px; height: 26px; border-radius: 8px; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.icon-btn:hover { color: var(--text); background: rgba(255,255,255,.08); }
+.icon-btn.danger:hover { color: #fff; background: #e5484d; }
+.icon-btn:hover { color: var(--text); }
+
+.pad { padding: 16px; }
+.pad-sm { padding: 10px 14px; }
+.fill { flex: 1; min-height: 0; }
+.scroll { overflow-y: auto; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.row { display: flex; align-items: center; gap: 10px; }
+.between { justify-content: space-between; }
+.center { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; flex: 1; padding: 20px; gap: 10px; }
+.border-b { border-bottom: 1px solid var(--border); }
+.tight { margin: 0; }
+h2 { font-size: 16px; margin: 0; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+
+label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); }
+
+input, select, textarea {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  color: var(--text); padding: 10px 12px; font: inherit; outline: none; user-select: text;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--brand); }
+
+/* O menu nativo do <select> no Windows usa as cores do sistema (fica branco).
+   Forçamos fundo escuro e texto claro nas opções. */
+select {
+  appearance: none;
+  background-color: var(--field);
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+                    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 18px, calc(100% - 12px) 18px;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 34px;
+}
+select option {
+  background-color: #0f2233;
+  color: var(--text);
+}
+select option:checked, select option:hover {
+  background-color: var(--brand);
+  color: var(--brand-ink);
+}
+textarea { resize: vertical; }
+
+button { font: inherit; border-radius: 10px; cursor: pointer; }
+button.primary { background: var(--brand); color: var(--brand-ink); border: none; padding: 10px 16px; font-weight: 600; }
+button.primary:disabled { opacity: .45; cursor: not-allowed; }
+button.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 6px 12px; }
+
+.banner { border-radius: 10px; padding: 10px 12px; font-size: 12px; }
+.banner.error { background: rgba(255, 107, 107, .12); border: 1px solid rgba(255, 107, 107, .4); color: #ffc9c9; }
+
+.info-grid { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 12px; color: var(--muted); }
+.info-grid strong { color: var(--text); text-align: right; }
+
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
+.ticket {
+  width: 100%; text-align: left; display: flex; flex-direction: column; gap: 4px;
+  background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 12px;
+}
+.ticket:hover { border-color: var(--brand); }
+.ticket .title { font-size: 13px; }
+
+.badge { font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); }
+.badge.critical { background: rgba(255, 77, 77, .18); color: #ff9d9d; }
+.badge.high { background: rgba(255, 168, 76, .18); color: #ffd0a1; }
+.badge.medium { background: rgba(77, 163, 255, .18); color: #b3d9ff; }
+.badge.low { background: rgba(45, 255, 152, .14); color: var(--brand); }
+
+.chat { display: flex; flex-direction: column; }
+.messages { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.bubble { max-width: 80%; padding: 8px 12px; border-radius: 14px; font-size: 13px; user-select: text; }
+.bubble p { margin: 0; white-space: pre-wrap; word-break: break-word; }
+.bubble time { display: block; font-size: 10px; color: var(--muted); margin-top: 4px; }
+.bubble .author { font-size: 11px; color: var(--brand); font-weight: 600; }
+.bubble.mine { align-self: flex-end; background: rgba(45, 255, 152, .16); border: 1px solid rgba(45, 255, 152, .3); }
+.bubble.theirs { align-self: flex-start; background: var(--surface); border: 1px solid var(--border); }
+
+.composer { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--border); }
+.composer input { flex: 1; }
+
+.win-buttons { display: flex; align-items: center; gap: 4px; }
+.win-buttons .icon-btn { width: 26px; height: 24px; border-radius: 6px; line-height: 1; }
+.win-buttons .icon-btn:hover { background: rgba(255,255,255,.08); }

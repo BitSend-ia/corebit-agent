@@ -27,7 +27,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: asset: http://asset.localhost"
+      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: asset: http://asset.localhost; connect-src 'self' https://cliente.corebit.com.br https://uhccjkavjhnygmucvgoz.supabase.co https://github.com https://objects.githubusercontent.com"
     },
     "trayIcon": {
       "id": "main-tray",
@@ -66,11 +66,12 @@
   },
   "plugins": {
     "updater": {
-      "active": true,
       "endpoints": [
         "https://github.com/BitSend-ia/corebit-agent/releases/latest/download/latest.json"
       ],
-      "dialog": true,
+      "windows": {
+        "installMode": "passive"
+      },
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDI5MEEyN0I4QzlEQ0E0OTIKUldTU3BOekp1Q2NLS2NVSWpIZEwzaGt6d3VNV095WW1BMnBwcDg3L3FidjFXTHZzR2dCSjFXWEsK"
     }
   }

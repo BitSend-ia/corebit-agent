@@ -28,7 +28,7 @@ pub struct AgentStatus {
     anydesk_id: Option<String>,
     agent_version: String,
     machine: Option<api::Machine>,
-    /// mensagem de bloqueio (licença/máquina inativa) — o app mostra e não faz loop
+    /// mensagem de bloqueio (licença/máquina inativa)
     blocked: Option<String>,
 }
 
@@ -112,6 +112,35 @@ async fn pair(
 fn unpair(state: State<'_, AgentState>) -> Result<(), String> {
     *state.machine.lock().unwrap() = None;
     *state.blocked.lock().unwrap() = None;
+    store::clear_token()
+}
+
+/// "Verificar novamente": limpa o bloqueio e consulta o portal na hora.
+#[tauri::command]
+async fn recheck(app: AppHandle) -> Result<bool, api::ApiError> {
+    if let Some(state) = app.try_state::<AgentState>() {
+        *state.blocked.lock().unwrap() = None;
+    }
+
+    let Some(token) = store::load_token() else {
+        return Ok(false); // sem token: a interface cai na tela de licença
+    };
+
+    api::heartbeat(
+        &token,
+        sysinfo::anydesk_id(),
+        &sysinfo::os_user(),
+        &sysinfo::agent_version(),
+    )
+    .await
+    .map(|_| true)
+    .map_err(|e| handle_error(&app, e))
+}
+
+/// Apaga o token do Cofre de Credenciais do Windows.
+/// Usado pelo desinstalador (`--purge-credentials`).
+#[tauri::command]
+fn purge_credentials() -> Result<(), String> {
     store::clear_token()
 }
 
@@ -254,6 +283,12 @@ fn spawn_heartbeat(app: AppHandle) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Chamado pelo desinstalador: limpa o cofre e encerra sem abrir janela.
+    if std::env::args().any(|a| a == "--purge-credentials") {
+        let _ = store::clear_token();
+        std::process::exit(0);
+    }
+
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
             show_window(app);
@@ -272,6 +307,8 @@ pub fn run() {
             get_status,
             pair,
             unpair,
+            recheck,
+            purge_credentials,
             categories,
             tickets,
             create_ticket,
@@ -349,7 +386,7 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("erro ao iniciar o Corebit Agent")
         .run(|_app, event| {
-            // impede que o app morra quando a janela é escondida
+            // impedir que o app morra quando a janela é escondida
             if let tauri::RunEvent::ExitRequested { api, code, .. } = event {
                 if code.is_none() {
                     api.prevent_exit();

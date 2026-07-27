@@ -24,7 +24,7 @@ jobs:
         with:
           workspaces: src-tauri
 
-      - run: npm ci
+      - run: npm install
 
       - name: Build + assinar instaladores
         uses: tauri-apps/tauri-action@v0

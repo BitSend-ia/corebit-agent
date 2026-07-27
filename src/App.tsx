@@ -28,6 +28,29 @@ export default function App() {
     return () => clearInterval(timer);
   }, [refresh]);
 
+  /** Consulta o portal de verdade: se o suporte reativou o acesso, volta a funcionar. */
+  const recheck = useCallback(async () => {
+    try {
+      await agent.recheck();
+      setError(null);
+    } catch (err) {
+      // erro terminal já vira novo "blocked" no Rust; erro de rede vira banner
+      if (!isApiError(err)) setError(errorMessage(err));
+    }
+    await refresh();
+  }, [refresh]);
+
+  /** Descarta o pareamento atual e volta para a tela de licença. */
+  const unpairNow = useCallback(async () => {
+    try {
+      await agent.unpair();
+    } catch (err) {
+      setError(errorMessage(err));
+    }
+    setView({ name: "list" });
+    await refresh();
+  }, [refresh]);
+
   if (!status) {
     return (
       <div className="app">
@@ -39,7 +62,7 @@ export default function App() {
 
   const body = () => {
     if (status.blocked) {
-      return <BlockedScreen message={status.blocked} onRetry={refresh} />;
+      return <BlockedScreen message={status.blocked} onRetry={recheck} onUnpair={unpairNow} />;
     }
     if (!status.paired) {
       return <PairScreen status={status} onPaired={refresh} />;

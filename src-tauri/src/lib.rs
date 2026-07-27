@@ -173,6 +173,7 @@ async fn send_message(
             message: "A mensagem deve ter entre 1 e 4000 caracteres.".into(),
         });
     }
+
     api::send_message(&token()?, &public_token, &body)
         .await
         .map_err(|e| handle_error(&app, e))
@@ -263,6 +264,7 @@ pub fn run() {
         ))
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_log::Builder::new().build())
         .manage(AgentState::default())

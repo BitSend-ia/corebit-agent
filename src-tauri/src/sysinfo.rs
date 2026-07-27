@@ -1,5 +1,4 @@
-//! Coleta de identidade da máquina: hostname, usuário do Windows e ID do AnyDesk.
-
+use sha2::{Digest, Sha256};
 use std::fs;
 use std::path::PathBuf;
 
@@ -18,7 +17,31 @@ pub fn agent_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
 }
 
-/// Lê o ID do AnyDesk de `%ProgramData%\AnyDesk\service.conf` (ou do perfil do usuário).
+/// Identificador único e estável desta instalação do Windows.
+#[cfg(windows)]
+fn machine_guid() -> String {
+    use winreg::enums::{HKEY_LOCAL_MACHINE, KEY_READ, KEY_WOW64_64KEY};
+    use winreg::RegKey;
+
+    RegKey::predef(HKEY_LOCAL_MACHINE)
+        .open_subkey_with_flags(r"SOFTWARE\Microsoft\Cryptography", KEY_READ | KEY_WOW64_64KEY)
+        .and_then(|key| key.get_value::<String, _>("MachineGuid"))
+        .unwrap_or_default()
+}
+
+#[cfg(not(windows))]
+fn machine_guid() -> String {
+    String::new()
+}
+
+/// Impressão digital de hardware enviada em todas as chamadas.
+pub fn fingerprint() -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(format!("corebit|{}|{}", machine_guid(), hostname()));
+    format!("{:x}", hasher.finalize())
+}
+
+/// Ler o ID do AnyDesk de `%ProgramData%\AnyDesk\service.conf` (ou do perfil do usuário).
 pub fn anydesk_id() -> Option<String> {
     let mut candidates: Vec<PathBuf> = Vec::new();
 
